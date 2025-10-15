@@ -83,12 +83,20 @@ if uploaded_file is not None:
             plt.xticks(rotation = 'vertical')
             st.pyplot(fig)
 
-        # Activity Heatmap
-        st.title("Weekly Activity Map")
-        user_heatmap = helper.activity_heatmap(selected_user, df)
-        fig,ax = plt.subplots()
-        ax = sns.heatmap(user_heatmap)
-        st.pyplot(fig)
+            # Activity Heatmap
+            st.subheader("Weekly Activity Heatmap")
+
+            # Construct pivot table
+            user_heatmap = df.pivot_table(index='day_name', columns='period', values='message', aggfunc='count').fillna(0)
+
+            # Plot only if data exists
+            if user_heatmap.empty:
+                st.warning("No data available for heatmap.")
+            else:
+                fig, ax = plt.subplots()
+                ax = sns.heatmap(user_heatmap, cmap='YlGnBu')
+                st.pyplot(fig)
+
 
         # finding the busiest users in the group(Group level)
         if selected_user == 'Overall':
