@@ -143,9 +143,10 @@ if uploaded_file is not None:
 
         with col2:
             fig , ax = plt.subplots()
-            # Works whether columns are 0/1 or named
-            if 0 in emoji_df.columns and 1 in emoji_df.columns:
-                 ax.pie(emoji_df[1].head(), labels=emoji_df[0].head(), autopct="%0.2f")
+            
+            if emoji_df.empty:
+                st.warning("No emojis found in this chat.")
             else:
-                 ax.pie(emoji_df['count'].head(), labels=emoji_df['emoji'].head(), autopct="%0.2f")
-            st.pyplot(fig)
+                fig, ax = plt.subplots()
+                ax.pie(emoji_df['count'].head(), labels=emoji_df['emoji'].head(), autopct="%0.2f")
+                st.pyplot(fig)
