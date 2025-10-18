@@ -136,17 +136,20 @@ if uploaded_file is not None:
         emoji_df = helper.emoji_helper(selected_user, df)
         st.title("Emoji Analysis")
 
-        col1,col2 = st.columns(2)
+        col1, col2 = st.columns(2)
 
         with col1:
-            st.dataframe(emoji_df)
+           st.dataframe(emoji_df)
 
-        with col2:
-            fig , ax = plt.subplots()
-            
-           if not emoji_df.empty and 'count' in emoji_df.columns and 'emoji' in emoji_df.columns:
-              fig, ax = plt.subplots()
-              ax.pie(emoji_df['count'].head(), labels=emoji_df['emoji'].head(), autopct="%0.2f")
-              st.pyplot(fig)
-           else:
-              st.write("No emoji data available or unexpected DataFrame structure.")
+       with col2:
+       # Create pie chart only if valid
+         if not emoji_df.empty and 'count' in emoji_df.columns and 'emoji' in emoji_df.columns:
+             fig, ax = plt.subplots()
+             ax.pie(
+             emoji_df['count'].head(),
+             labels=emoji_df['emoji'].head(),
+             autopct="%0.2f"
+             )
+             st.pyplot(fig)
+         else:
+            st.write("No emoji data available or unexpected DataFrame structure.")
