@@ -144,9 +144,9 @@ if uploaded_file is not None:
         with col2:
             fig , ax = plt.subplots()
             
-            if emoji_df.empty:
-                st.warning("No emojis found in this chat.")
-            else:
-                fig, ax = plt.subplots()
-                ax.pie(emoji_df['count'].head(), labels=emoji_df['emoji'].head(), autopct="%0.2f")
-                st.pyplot(fig)
+           if not emoji_df.empty and 'count' in emoji_df.columns and 'emoji' in emoji_df.columns:
+              fig, ax = plt.subplots()
+              ax.pie(emoji_df['count'].head(), labels=emoji_df['emoji'].head(), autopct="%0.2f")
+              st.pyplot(fig)
+           else:
+              st.write("No emoji data available or unexpected DataFrame structure.")
