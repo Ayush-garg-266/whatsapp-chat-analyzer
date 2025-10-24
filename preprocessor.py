@@ -2,43 +2,32 @@ import pandas as pd
 import re
 
 def preprocess(data):
-    """
-    Robust WhatsApp chat preprocessing.
-    Returns a DataFrame with columns:
-    ['date','only_date','year','month_num','month','day','day_name','hour','minute','period','user','message']
-    """
-
-    # 1️⃣ Split messages and extract dates
-    pattern = r'\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}(?:\s?[apAP][mM])?\s-\s'
+    # Pattern for 24-hour format messages
+    pattern = r'\d{1,2}/\d{1,2}/\d{2,4},\s\d{1,2}:\d{2}\s-\s'
     messages = re.split(pattern, data)[1:]
     dates = re.findall(pattern, data)
 
     df = pd.DataFrame({'user_message': messages, 'message_date': dates})
 
-    # 2️⃣ Parse dates robustly
-    df['message_date'] = pd.to_datetime(df['message_date'], errors='coerce', dayfirst=True)
+    # Parse date in 24-hour format
+    df['message_date'] = pd.to_datetime(df['message_date'], format='%d/%m/%Y, %H:%M - ', errors='coerce')
     df.rename(columns={'message_date': 'date'}, inplace=True)
 
-    # 3️⃣ Split user and message safely
     users = []
-    msgs = []
+    messages = []
     for message in df['user_message']:
-        if ": " in message:
-            user, msg = message.split(": ", 1)
-            users.append(user)
-            msgs.append(msg)
+        entry = re.split('([\w\W]+?):\s', message)
+        if entry[1:]:
+            users.append(entry[1])
+            messages.append(entry[2])
         else:
             users.append('group_notification')
-            msgs.append(message)
+            messages.append(entry[0])
 
     df['user'] = users
-    df['message'] = msgs
+    df['message'] = messages
     df.drop(columns=['user_message'], inplace=True)
 
-    # 4️⃣ Drop messages with invalid dates
-    df = df.dropna(subset=['date']).reset_index(drop=True)
-
-    # 5️⃣ Create datetime features
     df['only_date'] = df['date'].dt.date
     df['year'] = df['date'].dt.year
     df['month_num'] = df['date'].dt.month
@@ -48,7 +37,14 @@ def preprocess(data):
     df['hour'] = df['date'].dt.hour
     df['minute'] = df['date'].dt.minute
 
-    # 6️⃣ Period column (hour ranges) safely
-    df['period'] = df['hour'].apply(lambda x: f"{int(x)}-{(int(x)+1)%24:02d}" if pd.notnull(x) else "Unknown")
+    period = []
+    for hour in df['hour']:
+        if hour == 23:
+            period.append(f"{hour}-00")
+        elif hour == 0:
+            period.append(f"00-{hour+1}")
+        else:
+            period.append(f"{hour}-{hour+1}")
+    df['period'] = period
 
     return df
